@@ -1,0 +1,1 @@
+Character Health is Different from Player Health. It is possible for both of them to have different values. But the server uses the Player Health value

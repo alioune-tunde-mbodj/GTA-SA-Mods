@@ -1,0 +1,1 @@
+This new nickname will only be visible at our client, meaning that the server is unaffected and the remote players will not see our nickname changed

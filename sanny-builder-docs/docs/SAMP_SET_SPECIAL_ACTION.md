@@ -1,0 +1,1 @@
+Our character will perform this special action as well. Executing this opcocommandde is like receiving a SampRpc.ScrSetPlayerSpecialAction from the Server

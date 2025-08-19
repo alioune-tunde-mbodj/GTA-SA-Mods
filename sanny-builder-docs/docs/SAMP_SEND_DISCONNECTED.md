@@ -1,0 +1,1 @@
+Servers does not normally receive a disconnection RPC with reason = SampDisconnectReason.TimeoutOrCrashed

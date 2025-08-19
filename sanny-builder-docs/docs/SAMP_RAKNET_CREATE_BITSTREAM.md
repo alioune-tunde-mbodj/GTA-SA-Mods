@@ -1,0 +1,1 @@
+This command allocates memory for the object, and needs to be manually destroyed when not used by executing command SAMP_RAKNET_DELETE_BITSTREAM to free it from memory
