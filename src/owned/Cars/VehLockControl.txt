@@ -1,0 +1,58 @@
+{$CLEO .cs}
+{$USE CLEO+}
+// Author: Tunde
+// Name: CarDoorLockCtrl
+// Version: 1.1
+
+debug_on // enable "trace" command
+
+// --- Variable Declarations ---
+int current_car // Stores the car handle
+int neareast_ped // Stores the Ped handle
+int key // Store the key pressed on the keyboard
+float x1, y1, z1 // Stores coordinates for the player
+float x2, y2, z2 // Stores coordinates for the neareast car
+float dist_car_to_player // Stores the distance calculated from coordinates
+int car_door_lock_status // Stores the lock status of the car
+script_name "CarDoorLockCtrl"
+
+:MAIN_LOOP
+wait 0
+if
+    is_key_just_pressed 76 // When L key is pressed
+then
+    current_car, neareast_ped = store_closest_entities $scplayer // Get the handle of the nearest car and ped
+    if
+        does_vehicle_exist current_car
+    then
+        x1, y1, z1 = get_char_coordinates $scplayer
+        x2, y2, z2 = get_car_coordinates current_car
+        dist_car_to_player = get_distance_between_coords_3d x1 y1 z1 x2 y2 z2 // Calculate the distance between the car and the player
+        if dist_car_to_player <= 10.0 // If distance is less or equal to 2 meters, proceed to lock or unlock the doors
+        then
+            car_door_lock_status = get_car_door_lock_status current_car
+            // Some Car Lock Status values : 1 = unlocked; 2 = locked; 4 = LockedPlayerInside;
+            // Toggle lock state
+            if car_door_lock_status == 1
+            then
+                if is_char_in_car $scplayer current_car
+                then
+                    lock_car_doors current_car 4 // lock with player inside
+                    print_help_string "Car Doors Locked"
+                else
+                    lock_car_doors current_car 2 // lock from outside
+                    set_car_alarm current_car 2
+                    print_help_string "Car Doors Locked"
+                    wait 2500
+                    set_car_alarm current_car 1
+                end
+            else
+                lock_car_doors current_car 1 // unlock
+                set_car_alarm current_car 0
+                print_help_string "Car Doors Unlocked"
+            end
+            wait 500
+        end
+    end
+end
+jump @MAIN_LOOP

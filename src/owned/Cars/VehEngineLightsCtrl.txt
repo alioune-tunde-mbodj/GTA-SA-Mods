@@ -1,0 +1,83 @@
+{$CLEO .cs}
+// Author: Tunde
+// Name: VehEngineLightsCtrl
+// Version: 1.5 - Refactored light control into a switch statement.
+
+// --- Variable Declarations ---
+int player_char
+int current_car // Stores the car handle
+int key
+
+script_name "VehEngineLightsCtrl"
+
+// --- Main Loop ---
+:MAIN_LOOP
+wait 0
+player_char = get_player_char 0
+
+// --- Check for 'M' key press (ASCII 77) ---
+if
+    is_key_just_pressed 77
+then
+    print_help_string "'M' Key Pressed!"
+
+    if
+        is_char_in_any_car player_char
+    then
+        current_car = store_car_char_is_in_no_save player_char
+        print_help_string "Got car handle!"
+
+        if
+            is_car_engine_on current_car
+        then
+            set_car_engine_on current_car 0
+            print_help_string "Engine Off"
+        else
+            set_car_engine_on current_car 1
+            print_help_string "Engine On"
+        end
+    else
+        print_help_string "Player is not in a car."
+    end
+end
+
+// --- Check for lights control keys ('+' and '-') and use a switch statement ---
+if or
+    is_key_just_pressed 107
+    is_key_just_pressed 109
+then
+    if
+        is_char_in_any_car player_char // Check if the player is in a car first
+    then
+        current_car = store_car_char_is_in_no_save player_char
+        if
+            is_car_engine_on current_car // Check if the engine is on
+        then
+            key = get_key_pressed_in_range KeyCode.Add KeyCode.Subtract // Get the current pad state
+            switch key
+            case 107 // '+' key
+                force_car_lights current_car CarLights.ForceOn
+                print_help_string "Lights On"
+            case 109 // '-' key
+                force_car_lights current_car CarLights.ForceOff
+                print_help_string "Lights Off"
+            end
+        else
+            if or
+                is_key_just_pressed 107 // '+' key
+                is_key_just_pressed 109 // '-' key
+            then
+                print_help_string "Engine is off. Cannot control lights!"
+            end
+        end
+    else
+        if or
+            is_key_just_pressed 107 // '+' key
+            is_key_just_pressed 109 // '-' key
+        then
+            print_help_string "Player is not in a car."
+        end
+    end
+end
+
+jump @MAIN_LOOP

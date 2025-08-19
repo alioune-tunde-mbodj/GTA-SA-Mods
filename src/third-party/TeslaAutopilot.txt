@@ -1,0 +1,685 @@
+{$CLEO .cs}
+{$USE CLEO+}
+{$USE NewOpcodes}
+
+nop
+3@ = load_audio_stream "CLEO\TeslaAutopilot\autopiloton.mp3"
+4@ = load_audio_stream "CLEO\TeslaAutopilot\autopilotoff.mp3"
+5@ = load_audio_stream "CLEO\TeslaAutopilot\warning.mp3"
+if
+    not does_file_exist "CLEO\TeslaAutopilot.ini"
+goto_if_false @Noname_639
+12@ = -1
+write_int_to_ini_file 12@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model1"
+set_lvar_int_to_lvar_int 13@ = 12@
+write_int_to_ini_file 13@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model2"
+set_lvar_int_to_lvar_int 14@ = 13@
+write_int_to_ini_file 14@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model3"
+set_lvar_int_to_lvar_int 15@ = 14@
+write_int_to_ini_file 15@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model4"
+25@ = 2.7
+write_float_to_ini_file 25@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "SphereSize"
+27@ = 1.5
+write_float_to_ini_file 27@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "MultiplicateRange"
+31@ = 0.5
+write_float_to_ini_file 31@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "BrakeStrength"
+17@ = 80
+write_int_to_ini_file 17@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "AutoPilotKey"
+
+:Noname_639
+if
+    not 12@ = read_int_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model1"
+goto_if_false @Noname_805
+
+:Noname_699
+if
+    not is_player_playing 0
+goto_if_false @Noname_725
+wait 0
+goto @Noname_699
+
+:Noname_725
+wait 2000
+print_string_now "It was not possible to read the ID of 'Model1' in 'CLEO\TeslaAutopilot.ini'" {time} 8000
+terminate_this_custom_script
+
+:Noname_805
+if
+    not 13@ = read_int_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model2"
+goto_if_false @Noname_922
+set_lvar_int_to_lvar_int 13@ = 12@
+write_int_to_ini_file 13@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model2"
+
+:Noname_922
+if
+    not 14@ = read_int_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model3"
+goto_if_false @Noname_1039
+set_lvar_int_to_lvar_int 14@ = 13@
+write_int_to_ini_file 14@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model3"
+
+:Noname_1039
+if
+    not 15@ = read_int_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model4"
+goto_if_false @Noname_1156
+set_lvar_int_to_lvar_int 15@ = 14@
+write_int_to_ini_file 15@ {path} "CLEO\TeslaAutopilot.ini" {section} "Model IDs" {key} "Model4"
+
+:Noname_1156
+if
+    not 25@ = read_float_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "SphereSize"
+goto_if_false @Noname_1277
+25@ = 2.7
+write_float_to_ini_file 25@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "SphereSize"
+
+:Noname_1277
+if
+    not 27@ = read_float_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "MultiplicateRange"
+goto_if_false @Noname_1412
+27@ = 1.5
+write_float_to_ini_file 27@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "MultiplicateRange"
+
+:Noname_1412
+if
+    not 31@ = read_float_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "BrakeStrength"
+goto_if_false @Noname_1539
+31@ = 0.5
+write_float_to_ini_file 31@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "BrakeStrength"
+
+:Noname_1539
+if
+    not 17@ = read_int_from_ini_file "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "AutoPilotKey"
+goto_if_false @Noname_1661
+17@ = 80
+write_int_to_ini_file 17@ {path} "CLEO\TeslaAutopilot.ini" {section} "Config" {key} "AutoPilotKey"
+
+:Noname_1661
+0@ = get_player_char 0
+30@ = 20.0
+
+:Noname_1678
+wait 0
+if and
+    not is_char_in_any_car 0@
+    1@ == 0
+goto_if_false @Noname_1724
+2@ = 0
+wait 5000
+goto @Noname_1678
+
+:Noname_1724
+if
+    is_char_in_any_car 0@
+goto_if_false @Noname_1839
+1@ = store_car_char_is_in_no_save 0@
+7@ = get_car_model 1@
+if and
+    not is_int_lvar_equal_to_int_lvar 7@ == 12@
+    not is_int_lvar_equal_to_int_lvar 7@ == 13@
+    not is_int_lvar_equal_to_int_lvar 7@ == 14@
+    not is_int_lvar_equal_to_int_lvar 7@ == 15@
+goto_if_false @Noname_1832
+1@ = 0
+2@ = 0
+11@ = 0
+wait 5000
+goto @Noname_1678
+
+:Noname_1832
+goto @Noname_2183
+
+:Noname_1839
+if and
+    not is_int_lvar_equal_to_int_lvar 7@ == 12@
+    not is_int_lvar_equal_to_int_lvar 7@ == 13@
+    not is_int_lvar_equal_to_int_lvar 7@ == 14@
+    not is_int_lvar_equal_to_int_lvar 7@ == 15@
+goto_if_false @Noname_1915
+1@ = 0
+2@ = 0
+11@ = 0
+wait 5000
+goto @Noname_1678
+
+:Noname_1915
+if
+    11@ <> 1
+goto_if_false @Noname_1940
+2@ = 0
+
+:Noname_1940
+if
+    gosub @Noname_5342
+goto_if_false @Noname_1972
+1@ = 0
+goto @Noname_1678
+
+:Noname_1972
+if
+    1@ <> 0
+goto_if_false @Noname_2183
+if
+    is_key_pressed KeyCode.Tab
+goto_if_false @Noname_2183
+10@ = get_driver_of_car 1@
+if
+    does_char_exist 10@
+goto_if_false @Noname_2042
+set_char_model_alpha 10@ {alpha} 255
+delete_char 10@
+
+:Noname_2042
+10@ = create_char_inside_car 1@ {pedType} PedType.CivMale {modelId} #MALE01
+set_car_engine_on 1@ {state} True
+close_all_car_doors 1@
+set_char_model_alpha 10@ {alpha} 0
+set_car_driving_style 1@ {drivingStyle} DrivingMode.AvoidCars
+18@, 19@, 20@ = get_char_coordinates 0@
+20@ = get_ground_z_for_3d_coord 18@ {y} 19@ {z} 20@
+task_car_drive_to_coord 10@ {vehicle} 1@ {x} 18@ {y} 19@ {z} 20@ {speed} 20.0 {driveStyle} DriveMode.Accurate {modelId} #CSPLAY {drivingStyle} DrivingMode.SlowDownForCars
+set_car_can_go_against_traffic 1@ {state} True
+2@ = 1
+11@ = 1
+
+:Noname_2157
+if
+    is_key_pressed KeyCode.Tab
+goto_if_false @Noname_2183
+wait 0
+goto @Noname_2157
+
+:Noname_2183
+if
+    11@ == 1
+goto_if_false @Noname_2423
+if
+    does_char_exist 10@
+goto_if_false @Noname_2423
+if
+    not is_char_in_any_car 10@
+goto_if_false @Noname_2274
+set_char_model_alpha 10@ {alpha} 255
+delete_char 10@
+2@ = 0
+11@ = 0
+goto @Noname_1678
+goto @Noname_2423
+
+:Noname_2274
+18@, 19@, 20@ = get_char_coordinates 10@
+21@, 22@, 23@ = get_char_coordinates 0@
+29@ = get_distance_between_coords_2d 18@ {fromY} 19@ {toX} 21@ {toZ} 22@
+if
+    29@ > 300.0
+goto_if_false @Noname_2397
+if
+    does_char_exist 10@
+goto_if_false @Noname_2390
+set_char_model_alpha 10@ {alpha} 255
+delete_char 10@
+2@ = 0
+11@ = 0
+goto @Noname_1678
+
+:Noname_2390
+goto @Noname_2423
+
+:Noname_2397
+if
+    is_car_stuck 1@
+goto_if_false @Noname_2423
+set_car_forward_speed 1@ {forwardSpeed} -5.0
+
+:Noname_2423
+24@ = get_car_speed 1@
+18@, 19@ = get_car_pedals 1@
+if and
+    frame_mod 2
+    0.0 <= 18@
+    not is_car_really_in_air 1@
+    is_char_in_any_car 0@
+goto_if_false @Noname_3362
+6@ = -1
+set_lvar_float_to_lvar_float 26@ = 24@
+mult_float_lvar_by_float_lvar 26@ *= 27@
+if
+    26@ > 80.0
+goto_if_false @Noname_2531
+26@ = 80.0
+
+:Noname_2531
+18@, 19@, 20@ = get_offset_from_car_in_world_coords 1@ {xOffset} 0.0 {yOffset} 26@ {zOffset} 0.0
+if
+    6@ = get_random_char_in_sphere_no_save_recursive 18@ {y} 19@ {z} 20@ {radius} 25@ {findNext} True {filter} CharSearchFilter.AnyAliveNPC
+goto_if_false @Noname_2900
+if
+    is_char_in_any_car 6@
+goto_if_false @Noname_2819
+9@ = store_car_char_is_in_no_save 6@
+28@ = get_car_speed 9@
+if
+    2@ == 1
+goto_if_false @Noname_2717
+if
+    11@ == 0
+goto_if_false @Noname_2710
+if or
+    16@ == 0
+    16@ == 4
+goto_if_false @Noname_2710
+if
+    is_float_lvar_greater_than_float_lvar 24@ > 28@
+goto_if_false @Noname_2710
+set_car_cruise_speed 1@ {maxSpeed} 28@
+
+:Noname_2710
+goto @Noname_2812
+
+:Noname_2717
+28@ *= 1.15
+if and
+    is_float_lvar_greater_than_float_lvar 24@ > 28@
+    8.0 <= 24@
+goto_if_false @Noname_2802
+8@ = get_audio_stream_state 5@
+if
+    8@ <> 1
+goto_if_false @Noname_2802
+set_audio_stream_state 5@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 5@ {volume} TIMERA
+
+:Noname_2802
+28@ /= 1.15
+
+:Noname_2812
+goto @Noname_2893
+
+:Noname_2819
+if
+    8.0 <= 24@
+goto_if_false @Noname_2893
+8@ = get_audio_stream_state 5@
+if and
+    8@ <> 1
+    2@ <> 1
+goto_if_false @Noname_2893
+set_audio_stream_state 5@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 5@ {volume} TIMERA
+
+:Noname_2893
+goto @Noname_3362
+
+:Noname_2900
+18@, 19@, 20@ = get_offset_from_car_in_world_coords 1@ {xOffset} 0.0 {yOffset} 10.0 {zOffset} 0.0
+if
+    6@ = get_random_char_in_sphere_no_save_recursive 18@ {y} 19@ {z} 20@ {radius} 25@ {findNext} True {filter} CharSearchFilter.AnyAliveNPC
+goto_if_false @Noname_3336
+8@ = get_audio_stream_state 5@
+if and
+    8@ <> 1
+    8.0 <= 24@
+goto_if_false @Noname_3329
+if
+    2@ <> 1
+goto_if_false @Noname_3035
+set_audio_stream_state 5@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 5@ {volume} TIMERA
+
+:Noname_3035
+set_car_lights_on 1@ {state} True
+
+:Noname_3042
+if
+    is_pc_version
+goto_if_false @Noname_3309
+wait 0
+if and
+    16@ <> 0
+    16@ <> 4
+    2@ == 1
+goto_if_false @Noname_3098
+goto @Noname_3309
+
+:Noname_3098
+if
+    11@ == 1
+goto_if_false @Noname_3123
+goto @Noname_3309
+
+:Noname_3123
+if or
+    not is_char_in_car 0@ {vehicle} 1@
+    gosub @Noname_5342
+goto_if_false @Noname_3156
+goto @Noname_1678
+
+:Noname_3156
+24@ = get_car_speed 1@
+if
+    is_char_in_any_car 6@
+goto_if_false @Noname_3248
+9@ = store_car_char_is_in_no_save 6@
+28@ = get_car_speed 9@
+if
+    is_float_lvar_greater_or_equal_to_float_lvar 28@ >= 24@
+goto_if_false @Noname_3248
+if
+    2@ == 1
+goto_if_false @Noname_3241
+set_car_cruise_speed 1@ {maxSpeed} 30@
+
+:Noname_3241
+goto @Noname_3309
+
+:Noname_3248
+if
+    1.0 >= 24@
+goto_if_false @Noname_3286
+set_car_forward_speed 1@ {forwardSpeed} 0.0
+goto @Noname_3309
+
+:Noname_3286
+sub_timed_float_lvar_from_float_lvar 24@ -=@ 31@
+set_car_forward_speed 1@ {forwardSpeed} 24@
+goto @Noname_3042
+
+:Noname_3309
+set_car_lights_on 1@ {state} False
+24@ = get_car_speed 1@
+wait 2000
+
+:Noname_3329
+goto @Noname_3362
+
+:Noname_3336
+if
+    2@ == 1
+goto_if_false @Noname_3362
+set_car_cruise_speed 1@ {maxSpeed} 30@
+
+:Noname_3362
+if and
+    2@ == 1
+    11@ <> 1
+goto_if_false @Noname_3495
+if or
+    is_key_pressed KeyCode.W
+    is_key_pressed KeyCode.S
+    is_key_pressed KeyCode.A
+    is_key_pressed KeyCode.D
+goto_if_false @Noname_3495
+task_warp_char_into_car_as_driver 0@ {vehicle} 1@
+task_play_anim 0@ {animationName} "CAR_TUNE_RADIO" {animationFile} "PED" {blendSpeed} 4.0 {loop} False {lockX} False {lockY} False {keepLastFrame} False {time} -1
+wait 300
+set_audio_stream_state 4@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 4@ {volume} TIMERA
+2@ = 0
+
+:Noname_3495
+if and
+    is_key_pressed KeyCode.C
+    is_key_pressed KeyCode.X
+    is_char_in_any_car 0@
+goto_if_false @Noname_4096
+16@ += 1
+if
+    16@ > 5
+goto_if_false @Noname_3551
+16@ = 0
+
+:Noname_3551
+set_car_driving_style 1@ {drivingStyle} 16@
+switch_start 16@ {numCases} 6 {hasDefaultCase} 0 {defaultLabel} @Noname_4066 {caseNum1} 0 {caseLabel1} @Noname_3622 {caseNum2} 1 {caseLabel2} @Noname_3697 {caseNum3} 2 {caseLabel3} @Noname_3774 {caseNum4} 3 {caseLabel4} @Noname_3845 {caseNum5} 4 {caseLabel5} @Noname_3920 {caseNum6} 5 {caseLabel6} @Noname_3993 {caseNum7} -1 {caseLabel7} @Noname_4066
+
+:Noname_3622
+print_formatted_now "Autopilot Mode: Respects traffic lights, brakes for obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_3697
+print_formatted_now "Autopilot Mode: Respects traffic lights, drives over obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_3774
+print_formatted_now "Autopilot Mode: Ignores traffic lights, goes around obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_3845
+print_formatted_now "Autopilot Mode: Ignores traffic lights, drives over obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_3920
+print_formatted_now "Autopilot Mode: Ignores traffic lights, brakes for obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_3993
+print_formatted_now "Autopilot Mode: Respects traffic lights, goes around obstacles" {time} 3000
+goto @Noname_4066
+
+:Noname_4066
+if and
+    is_key_pressed KeyCode.C
+    is_key_pressed KeyCode.X
+goto_if_false @Noname_4096
+wait 0
+goto @Noname_4066
+
+:Noname_4096
+if and
+    is_key_pressed KeyCode.X
+    not is_key_pressed KeyCode.C
+    is_char_in_any_car 0@
+goto_if_false @Noname_4331
+8@ = get_radio_channel
+set_radio_channel RadioChannel.None
+
+:Noname_4129
+if and
+    is_key_pressed KeyCode.X
+    not is_key_pressed KeyCode.C
+goto_if_false @Noname_4321
+wait 100
+if
+    is_mouse_wheel_up
+goto_if_false @Noname_4175
+add_timed_val_to_float_lvar 30@ +=@ 5.0
+
+:Noname_4175
+if
+    is_mouse_wheel_down
+goto_if_false @Noname_4198
+sub_timed_val_from_float_lvar 30@ -=@ 5.0
+
+:Noname_4198
+set_radio_channel RadioChannel.None
+if and
+    is_key_pressed KeyCode.W
+    is_key_pressed KeyCode.S
+goto_if_false @Noname_4231
+30@ = 20.0
+
+:Noname_4231
+if
+    0.0 > 30@
+goto_if_false @Noname_4262
+30@ = 0.0
+
+:Noname_4262
+print_formatted_now "Autopilot cruise speed: %.0f" {time} 500 {args} 30@
+goto @Noname_4129
+
+:Noname_4321
+wait 200
+set_radio_channel 8@
+
+:Noname_4331
+if and
+    is_key_pressed 17@
+    11@ <> 1
+    is_char_in_any_car 0@
+goto_if_false @Noname_4655
+if
+    2@ == 0
+goto_if_false @Noname_4574
+task_play_anim 0@ {animationName} "CAR_TUNE_RADIO" {animationFile} "PED" {blendSpeed} 4.0 {loop} False {lockX} False {lockY} False {keepLastFrame} False {time} -1
+wait 300
+set_audio_stream_state 3@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 3@ {volume} TIMERA
+if
+    18@, 19@, 20@ = get_target_blip_coords
+goto_if_false @Noname_4532
+20@ = get_ground_z_for_3d_coord 18@ {y} 19@ {z} 20@
+18@, 19@, 20@ = get_closest_car_node 18@ {y} 19@ {z} 20@
+task_car_drive_to_coord 0@ {vehicle} 1@ {x} 18@ {y} 19@ {z} 20@ {speed} 30@ {driveStyle} DriveMode.Normal {modelId} #NULL {drivingStyle} DrivingMode.StopForCars
+goto @Noname_4545
+
+:Noname_4532
+task_car_drive_wander 0@ {vehicle} 1@ {speed} 30@ {drivingMode} DrivingMode.SlowDownForCars
+
+:Noname_4545
+set_car_can_go_against_traffic 1@ {state} False
+set_car_driving_style 1@ {drivingStyle} 16@
+2@ = 1
+goto @Noname_4655
+
+:Noname_4574
+task_warp_char_into_car_as_driver 0@ {vehicle} 1@
+task_play_anim 0@ {animationName} "CAR_TUNE_RADIO" {animationFile} "PED" {blendSpeed} 4.0 {loop} False {lockX} False {lockY} False {keepLastFrame} False {time} -1
+wait 300
+set_audio_stream_state 4@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 4@ {volume} TIMERA
+2@ = 0
+
+:Noname_4655
+if and
+    2@ == 1
+    frame_mod 40
+goto_if_false @Noname_5335
+if or
+    18@, 19@, 20@ = get_target_blip_coords
+    11@ == 1
+goto_if_false @Noname_5335
+if
+    gosub @Noname_5342
+goto_if_false @Noname_4731
+goto @Noname_1678
+
+:Noname_4731
+if
+    11@ == 1
+goto_if_false @Noname_4777
+set_car_driving_style 1@ {drivingStyle} DrivingMode.AvoidCars
+18@, 19@, 20@ = get_char_coordinates 0@
+goto @Noname_4785
+
+:Noname_4777
+set_car_driving_style 1@ {drivingStyle} 16@
+
+:Noname_4785
+20@ = get_ground_z_for_3d_coord 18@ {y} 19@ {z} 20@
+18@, 19@, 20@ = get_closest_car_node 18@ {y} 19@ {z} 20@
+if
+    11@ == 1
+goto_if_false @Noname_4872
+task_car_drive_to_coord 10@ {vehicle} 1@ {x} 18@ {y} 19@ {z} 20@ {speed} 30@ {driveStyle} DriveMode.Normal {modelId} #NULL {drivingStyle} DrivingMode.StopForCars
+goto @Noname_4898
+
+:Noname_4872
+task_car_drive_to_coord 0@ {vehicle} 1@ {x} 18@ {y} 19@ {z} 20@ {speed} 30@ {driveStyle} DriveMode.Normal {modelId} #NULL {drivingStyle} DrivingMode.StopForCars
+
+:Noname_4898
+set_car_can_go_against_traffic 1@ {state} False
+set_lvar_float_to_lvar_float 21@ = 18@
+21@ += -10.0
+set_lvar_float_to_lvar_float 22@ = 19@
+22@ += -10.0
+18@ += 10.0
+19@ += 10.0
+if and
+    not is_car_in_area_2d 1@ {leftBottomX} 18@ {leftBottomY} 19@ {rightTopX} 21@ {rightTopY} 22@ {drawSphere} False
+    11@ == 1
+goto_if_false @Noname_5068
+18@, 19@, 20@ = get_char_coordinates 0@
+set_lvar_float_to_lvar_float 21@ = 18@
+21@ += -10.0
+set_lvar_float_to_lvar_float 22@ = 19@
+22@ += -10.0
+18@ += 10.0
+19@ += 10.0
+
+:Noname_5068
+if
+    is_car_in_area_2d 1@ {leftBottomX} 18@ {leftBottomY} 19@ {rightTopX} 21@ {rightTopY} 22@ {drawSphere} False
+goto_if_false @Noname_5335
+if
+    11@ == 1
+goto_if_false @Noname_5276
+set_car_forward_speed 1@ {forwardSpeed} 0.0
+set_char_model_alpha 10@ {alpha} 255
+delete_char 10@
+29@ = get_door_angle_ratio 1@ {door} CarDoor.LeftFrontDoor
+
+:Noname_5149
+if
+    is_pc_version
+goto_if_false @Noname_5255
+wait 0
+if
+    gosub @Noname_5342
+goto_if_false @Noname_5191
+goto @Noname_1678
+
+:Noname_5191
+add_timed_val_to_float_lvar 29@ +=@ 0.01
+car_horn 1@
+set_car_lights_on 1@ {state} True
+open_car_door_a_bit 1@ {door} CarDoor.LeftFrontDoor {value} 29@
+if
+    is_car_door_fully_open 1@ {door} CarDoor.LeftFrontDoor
+goto_if_false @Noname_5248
+goto @Noname_5255
+
+:Noname_5248
+goto @Noname_5149
+
+:Noname_5255
+set_car_lights_on 1@ {state} False
+set_car_engine_on 1@ {state} False
+goto @Noname_5321
+
+:Noname_5276
+task_warp_char_into_car_as_driver 0@ {vehicle} 1@
+set_audio_stream_state 4@ {action} AudioStreamAction.Play
+get_audio_sfx_volume TIMERA
+set_audio_stream_volume 4@ {volume} TIMERA
+apply_brakes_to_players_car 0 {state} True
+wait 1000
+apply_brakes_to_players_car 0 {state} False
+
+:Noname_5321
+2@ = 0
+11@ = 0
+
+:Noname_5335
+goto @Noname_1678
+
+:Noname_5342
+if or
+    not does_vehicle_exist 1@
+    is_car_dead 1@
+goto_if_false @Noname_5386
+2@ = 0
+11@ = 0
+is_pc_version
+goto @Noname_5388
+
+:Noname_5386
+is_australian_game
+
+:Noname_5388
+return
+terminate_this_custom_script

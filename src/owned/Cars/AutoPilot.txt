@@ -1,0 +1,81 @@
+{$CLEO .cs}
+{$USE CLEO+}
+// Author: Tunde
+// Name: VehAutoDrive
+// Version: 1.5 - Refactored light control into a switch statement.
+
+debug_on // enable "trace" command
+
+wait 2500
+
+float x, y, z
+int current_car
+float distance_to_target
+float x1, y1, z1
+int auto_pilot_status
+
+auto_pilot_status = 0
+
+:main_loop
+wait 0
+
+if and
+    is_key_just_pressed 119
+    is_truthy $scplayer
+    auto_pilot_status = 0
+then
+    //    print_help_formatted "Player Handle -> %i" $scplayer
+    wait 100
+    auto_pilot_status = 1
+    if
+        is_char_in_any_car $scplayer
+    then
+        current_car = store_car_char_is_in_no_save $scplayer
+        //        print_help_formatted "Car Handle -> %i" current_car
+        wait 100
+    end
+    if and
+        x, y, z = get_target_blip_coords
+        x1, y1, z1 = get_car_coordinates current_car
+        auto_pilot_status = 1
+    then
+        distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1
+        while distance_to_target >= 50.0
+            wait 0
+            x1, y1, z1 = get_car_coordinates current_car
+            distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1
+            //            print_help_formatted "get_target_blip_coords -> %.1f %.1f %.1f" x y z
+            //            print_help_formatted "get_car_coords -> %.1f %.1f %.1f" x1 y1 z1
+            wait 0
+            if  and
+                auto_pilot_status = 1
+                is_key_pressed KeyCode.F8
+            then
+                while is_key_pressed KeyCode.F8
+                    wait 0
+                end
+                task_warp_char_into_car_as_driver $scplayer current_car
+                auto_pilot_status = 0
+                jump @MAIN_LOOP
+            end
+            if and
+                distance_to_target >= 20.0
+                auto_pilot_status = 1
+            then
+                print_formatted "distance to target -> %.1f" 100 distance_to_target
+                print_formatted "auto pilot status -> %i" 100 auto_pilot_status
+                set_car_can_go_against_traffic current_car false
+                task_car_drive_to_coord $scplayer current_car x y z 25.0 DriveMode.Accurate #NULL DrivingMode.StopForCarsIgnoreLights
+            end
+        end
+        task_warp_char_into_car_as_driver $scplayer current_car
+        auto_pilot_status = 0
+    else
+        print_help_formatted "No Coordinates availables"
+    end
+    //        set_car_driving_style myCar DrivingMode.AvoidCarsStopForPedsObeyLights DrivingMode.SlowDownForCars
+    //        set_car_cruise_speed myCar 20.0
+    //        car_goto_coordinates_accurate myCar x y z
+
+end
+jump @MAIN_LOOP
