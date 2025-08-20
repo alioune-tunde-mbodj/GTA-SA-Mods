@@ -2,80 +2,275 @@
 {$USE CLEO+}
 // Author: Tunde
 // Name: VehAutoDrive
-// Version: 1.5 - Refactored light control into a switch statement.
+// Version: 1.5 - .
 
 debug_on // enable "trace" command
 
 wait 2500
 
+// --- Variables declaration
 float x, y, z
 int current_car
-float distance_to_target
+var $distance_to_target: float
 float x1, y1, z1
-int auto_pilot_status
+var $auto_pilot_status: int
+int driver_in_car
+float min_move_distance
+int stuck_time_ms
+var $car_stuck_status: int
+var $car_speed: float
+var $xA: float, $yA: float, $zA: float
+var $xB: float, $yB: float, $zB: float
+var $car_1st_stopped: int
 
-auto_pilot_status = 0
+// --- Initialization ---
+min_move_distance = 5.0
+stuck_time_ms = 45000
+$auto_pilot_status = 0
+$car_stuck_status = 0
+$car_1st_stopped = 0
 
+// --- main loop ---
 :main_loop
 wait 0
-
-if and
-    is_key_just_pressed 119
-    is_truthy $scplayer
-    auto_pilot_status = 0
+// check if key F8 is pressed and the user exist and autopilot is disabled
+if or
+    is_key_just_pressed KeyCode.P
+    $car_stuck_status == 1
+    $auto_pilot_status == 1
 then
-    //    print_help_formatted "Player Handle -> %i" $scplayer
-    wait 100
-    auto_pilot_status = 1
-    if
-        is_char_in_any_car $scplayer
-    then
-        current_car = store_car_char_is_in_no_save $scplayer
-        //        print_help_formatted "Car Handle -> %i" current_car
-        wait 100
-    end
+    trace "Starting main_loop conditions"
     if and
+        is_truthy $scplayer
+        is_char_in_any_car $scplayer
+        $auto_pilot_status == 0
+    then
+        trace "AutoPilot key(P) pressed"
+        wait 0
+        jump @GetAndChecksData
+    end
+
+    if and
+        is_char_in_car $scplayer current_car
+        $auto_pilot_status == 0
+        $car_stuck_status == 1
+    then
+        trace "Car stuck, going to fix"
+        wait 0
+        jump @FixStuckCar
+    end
+
+    if and
+        is_char_in_car $scplayer current_car
+        $auto_pilot_status == 1
+        $car_stuck_status == 0
+    then
+        jump @DisengageAutoPilot
+    end
+end
+
+jump @main_loop
+terminate_this_script
+
+:GetAndChecksData
+trace "Starting GetAndCheckData"
+wait 0
+// check if the character is in a car among others essentials values
+if
+    is_char_in_any_car $scplayer
+then
+    if and
+        current_car = store_car_char_is_in_no_save $scplayer
         x, y, z = get_target_blip_coords
         x1, y1, z1 = get_car_coordinates current_car
-        auto_pilot_status = 1
+        $distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1 // calculate the distance between the car and the target
+        $auto_pilot_status == 0
+        $car_stuck_status == 0
     then
-        distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1
-        while distance_to_target >= 50.0
-            wait 0
-            x1, y1, z1 = get_car_coordinates current_car
-            distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1
-            //            print_help_formatted "get_target_blip_coords -> %.1f %.1f %.1f" x y z
-            //            print_help_formatted "get_car_coords -> %.1f %.1f %.1f" x1 y1 z1
-            wait 0
-            if  and
-                auto_pilot_status = 1
-                is_key_pressed KeyCode.F8
+        CheckCarStuckStatus (current_car, 1)
+        wait {time} 0
+        //trace "1-current_car: %i, distance_to_target: %f, $auto_pilot_status: %i" current_car $distance_to_target $auto_pilot_status
+        jump @StartUp
+    end
+end
+jump @main_loop
+
+:StartUp
+trace "Starting StartUp"
+if and
+    is_char_in_any_car $scplayer
+    is_car_engine_on current_car
+    $auto_pilot_status == 0
+then
+    $auto_pilot_status = 1
+    close_all_car_doors current_car
+    lock_car_doors current_car 4 // lock with player inside
+    print_help_string "Car Doors Locked"
+    CheckCarStuckStatus (current_car, 2)
+    wait 0
+    jump @EngageAutoPilot
+else
+    set_car_engine_on current_car 1
+    print_help_string "Engine On"
+    wait 0
+    jump @StartUp
+end
+jump @main_loop
+
+:FixStuckCar
+trace "Starting FixStuckCar"
+if and
+    is_char_in_car $scplayer current_car
+    $car_stuck_status == 1
+then
+    trace "Condition passed"
+    if and
+        $auto_pilot_status == 1
+        $car_stuck_status == 1
+    then
+        jump @DisengageAutoPilot
+    end
+    trace "auto_pilot_status: %i" $auto_pilot_status
+    wait 500
+    // reverse, steer
+    emulate_key_press {keyCode} KeyCode.S
+    wait {time} 1000
+    emulate_key_release {keyCode} KeyCode.S
+    CheckCarStuckStatus (current_car, 3)
+    if
+        $car_stuck_status == 0
+    then
+        //$car_stuck_status = CheckCarStuckStatus (current_car)
+        $auto_pilot_status = 1
+        jump @EngageAutoPilot
+    else
+        jump @FixStuckCar
+    end
+end
+jump @main_loop
+
+:DisengageAutoPilot
+task_warp_char_into_car_as_driver $scplayer current_car
+$auto_pilot_status = 0
+if
+    $car_stuck_status == 1
+then
+    jump @FixStuckCar
+end
+jump @main_loop
+
+:Drive
+task_car_drive_to_coord $scplayer current_car x y z 30.0 DriveMode.Accurate #NULL DrivingMode.StopForCarsIgnoreLights
+jump @EngageAutoPilot
+
+:EngageAutoPilot
+trace "Starting EngageAutoPilot"
+//trace "2-current_car: %i, distance_to_target: %f, auto_pilot_status: %i" current_car $distance_to_target $auto_pilot_status
+CheckCarStuckStatus (current_car, 4)
+if
+    $car_stuck_status == 1
+then
+    jump @FixStuckCar
+end
+
+if and
+    $auto_pilot_status == 1
+    $distance_to_target >= 20.0
+    $car_stuck_status == 0
+then
+    CheckCarStuckStatus (current_car, 5)
+    while $auto_pilot_status == 1
+        wait 0
+        CheckCarStuckStatus (current_car, 6)
+        x1, y1, z1 = get_car_coordinates current_car
+        $distance_to_target = get_distance_between_coords_3d x y z x1 y1 z1 // calculate the distance between the car and the target
+        if and
+            $distance_to_target >= 50.0
+            $car_stuck_status == 0
+        then
+            set_car_can_go_against_traffic current_car false
+            add_stuck_car_check current_car distance min_move_distance time stuck_time_ms
+            //add_stuck_car_check_with_warp {vehicle} current_car {distance} min_move_distance {time} stuck_time_ms {stuck} 1 {flipped} 1 {inWater} 1 {numNodesToCheck} 1500
+            jump @Drive
+        else
+            CheckCarStuckStatus (current_car, 7)
+            if
+                $car_stuck_status == 1
             then
-                while is_key_pressed KeyCode.F8
-                    wait 0
-                end
-                task_warp_char_into_car_as_driver $scplayer current_car
-                auto_pilot_status = 0
-                jump @MAIN_LOOP
+                jump @FixStuckCar
             end
-            if and
-                distance_to_target >= 20.0
-                auto_pilot_status = 1
+            if
+                $distance_to_target <= 50.0
             then
-                print_formatted "distance to target -> %.1f" 100 distance_to_target
-                print_formatted "auto pilot status -> %i" 100 auto_pilot_status
-                set_car_can_go_against_traffic current_car false
-                task_car_drive_to_coord $scplayer current_car x y z 25.0 DriveMode.Accurate #NULL DrivingMode.StopForCarsIgnoreLights
+                //TIMERA = 0
+                jump @DisengageAutoPilot
             end
         end
-        task_warp_char_into_car_as_driver $scplayer current_car
-        auto_pilot_status = 0
-    else
-        print_help_formatted "No Coordinates availables"
     end
-    //        set_car_driving_style myCar DrivingMode.AvoidCarsStopForPedsObeyLights DrivingMode.SlowDownForCars
-    //        set_car_cruise_speed myCar 20.0
-    //        car_goto_coordinates_accurate myCar x y z
-
 end
-jump @MAIN_LOOP
+jump @DisengageAutoPilot
+jump @main_loop
+
+function CheckCarStuckStatus (current_car: int, pos: int)
+    float distance_stopped
+    $car_speed = get_car_speed current_car
+    trace "TIMERA: %i" 32@
+    trace "xA: %f,yA: %f, zA: %f" $xA $yA $zA
+
+    if and
+        $car_speed <= 5.0
+        $auto_pilot_status == 1
+        $car_stuck_status == 0
+        $car_1st_stopped == 0
+    then
+        $car_1st_stopped = 1
+        $xA, $yA, $zA = get_car_coordinates current_car
+        trace "Car Speed: %f" $car_speed
+        32@ = 0
+    end
+
+    if
+        $car_1st_stopped == 1
+        $auto_pilot_status == 1
+        $car_stuck_status = 0
+        $car_speed > 5.0
+    then
+        $car_1st_stopped = 0
+    end
+
+    if and
+        $car_1st_stopped == 1
+        $car_speed <= 5.0
+        $auto_pilot_status == 1
+        $car_stuck_status == 0
+        32@ >= 45000
+    then
+        $xB, $yB, $zB = get_car_coordinates current_car
+        distance_stopped = get_distance_between_coords_3d $xA $yA $zA $xB $yB $zB
+        if and
+            distance_stopped <= 5.0
+            $distance_to_target >= 50.0
+        then
+            $car_stuck_status = 1
+        end
+    end
+
+    if and
+        $car_stuck_status == 1
+        $auto_pilot_status == 0
+        32@ >= 45000
+    then
+        $xB, $yB, $zB = get_car_coordinates current_car
+        distance_stopped = get_distance_between_coords_3d $xA $yA $zA $xB $yB $zB
+        if and
+            distance_stopped >= 5.0
+            $distance_to_target >= 50.0
+        then
+            $car_stuck_status = 0
+        end
+    end
+
+    trace "Checking car stuck status: %i, From: %i" $car_stuck_status pos
+end
+
+terminate_this_custom_script
